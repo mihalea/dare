@@ -8,37 +8,21 @@ import smtplib
 from email.mime.text import MIMEText
 from config import *
 
-class DoesNotCount(Exception):
-    pass
-
-# Get the last commit's date for $user as a string formatted as follows: %Y-%m-%dT%HH:%mm:%ssZ
-def get_last_commit_date(user):
-    with urllib.request.urlopen('https://api.github.com/users/' + user + '/events') as response:
-           html = response.read().decode("utf-8")
-           
-           date = json.loads(html)
-           ev_type = date[0]['type']
-           
-           # We only count commits and repo creation events, as they do also contain commits
-           if ev_type != "PushEvent" and ev_type != "CreateEvent":
-               raise DoesNotCount()
-
-           date = date[0]["created_at"]
-           return date
-
 # Check if a commit has been made yesterday. If it has, congratulate. If not, swear.
 def has_committed(user):
-    try:
-        commit_date = get_last_commit_date(user)
-        yesterday = int(time.strftime("%d")) - 1 
-        yesterdate = time.strftime("%Y-%m-") + str(yesterday)
+	with urllib.request.urlopen('https://api.github.com/users/' + user + '/events') as response:
+		html = response.read().decode("utf-8")
+           
+		data = json.loads(html)
 
-        if commit_date[:10] == yesterdate:
-            return True
-    except DoesNotCount:
-        pass
+		yesterday = int(time.strftime("%d")) - 1 
+		yesterdate = time.strftime("%Y-%m-") + str(yesterday)
 
-    return False
+		for event in data:
+			if (event["type"] == "PushEvent" or event['type'] == "CreateEvent") and event['created_at'][:10] == yesterdate:
+				return True
+
+		return False
 
 # Send an email to the recipient using the local server
 def mail(user):
@@ -51,12 +35,14 @@ def mail(user):
 	s.send_message(msg)
 	s.quit()
 
+	print("[" +  time.strftime("%Y-%m-%d_%H:%M:%S") + "] Mail sent for user " + user)
+
 # If the user has not committed, send an email to the recipient
-def check(user):
+def verify(user):
     if not has_committed(user):
         mail(user)
 
 # This must be run with the username of the user to be checked as an argument
 if __name__ == "__main__":
     for user in USER:
-    	check(user)
+    	verify(user)
