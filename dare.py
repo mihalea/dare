@@ -35,12 +35,19 @@ def mail(user):
 	s.send_message(msg)
 	s.quit()
 
-	print("[" +  time.strftime("%Y-%m-%d_%H:%M:%S") + "] Mail sent for user " + user)
+	log("Mail has been sent for user " + user)
+
+# Log message to the std output
+def log(msg):
+	print("[" +  time.strftime("%Y-%m-%d_%H:%M:%S") + "] " + msg)
 
 # If the user has not committed, send an email to the recipient
 def verify(user):
-    if not has_committed(user):
-        mail(user)
+	if not has_committed(user):
+		mail(user)
+	else:
+		log("User " + user + " has committed lately")	
+	
 
 # This must be run with the username of the user to be checked as an argument
 if __name__ == "__main__":
