@@ -3,6 +3,7 @@
 import urllib.request
 import sys
 import time
+from datetime import datetime, timedelta
 import json
 import smtplib
 from email.mime.text import MIMEText
@@ -15,8 +16,8 @@ def has_committed(user):
            
 		data = json.loads(html)
 
-		yesterday = int(time.strftime("%d")) - 1 
-		yesterdate = time.strftime("%Y-%m-") + str(yesterday)
+		yesterday = datetime.today() - timedelta(days=1)
+		yesterdate = yesterday.strftime("%Y-%m-%d")
 
 		for event in data:
 			if (event["type"] == "PushEvent" or event['type'] == "CreateEvent") and event['created_at'][:10] == yesterdate:
